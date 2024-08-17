@@ -8,14 +8,18 @@
 #include <app/App.h>
 #include <driverlib.h>
 
+#define SLAVE_ADDRESS 0x48
+
 static volatile appStatus app;
-static volatile int countdownMinutes;
+static volatile uint8_t commandID;
 
 void init_App(){
     app = timer_mode;       // Start in timer mode
 
 }
 
+
+/* Timer functionality */
 
 void startCountdownAlarm() {
 
@@ -110,8 +114,141 @@ void RTC_B_ISR (void)
             __bic_SR_register_on_exit(LPM0_bits);
             // Switch to idle mode
             app = idle;
+            // Initialize I2C for idle mode
+            void initializeI2C();
             break;
         default: break;
+    }
+}
+
+
+
+/* Data reading functionality */
+
+void initializeI2C()
+{
+
+    // Configure Pins for I2C
+    //Set P1.6 and P1.7 as Secondary Module Function Input.
+    /*
+
+    * Select Port 1
+    * Set Pin 6, 7 to input Secondary Module Function, (UCB0SIMO/UCB0SDA, UCB0SOMI/UCB0SCL).
+    */
+    GPIO_setAsPeripheralModuleFunctionInputPin(
+        GPIO_PORT_P1,
+        GPIO_PIN6 + GPIO_PIN7,
+        GPIO_SECONDARY_MODULE_FUNCTION
+    );
+
+    // eUSCI configuration
+    EUSCI_B_I2C_initSlaveParam param = {0};
+    param.slaveAddress = SLAVE_ADDRESS;
+    param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
+    param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
+    EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
+
+    EUSCI_B_I2C_enable(EUSCI_B0_BASE);
+
+    EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
+                EUSCI_B_I2C_RECEIVE_INTERRUPT0
+                );
+
+    EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
+                EUSCI_B_I2C_RECEIVE_INTERRUPT0
+                );
+
+    //Enter low power mode with interrupts enabled
+    __bis_SR_register(CPUOFF + GIE);
+    __no_operation();
+}
+
+void suspendI2CInterrupts() {
+    EUSCI_B_I2C_disableInterrupt(EUSCI_B0_BASE,
+         EUSCI_B_I2C_RECEIVE_INTERRUPT0
+         );
+}
+
+void resumeI2CInterrupts() {
+    EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
+        EUSCI_B_I2C_RECEIVE_INTERRUPT0
+        );
+}
+
+
+
+void commandHandler() {
+
+    switch(commandID){
+
+        case SystemStatus:
+            app = system_status;
+            break;
+        case HealthCheck:
+            app = health_check;
+            break;
+        case Temperature:
+            app = temp_reading;
+            break;
+        case TelecomAcknowledge:
+            app = telecom_acknowledge;
+            break;
+
+        default: // Unrecognized command
+            break;
+    }
+}
+
+
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=USCI_B0_VECTOR
+__interrupt
+#elif defined(__GNUC__)
+__attribute__((interrupt(USCI_B0_VECTOR)))
+#endif
+void USCIB0_ISR(void)
+{
+    switch(__even_in_range(UCB0IV, USCI_I2C_UCBIT9IFG))
+    {
+        case USCI_NONE:             // No interrupts break;
+            break;
+        case USCI_I2C_UCALIFG:      // Arbitration lost
+            break;
+        case USCI_I2C_UCNACKIFG:    // NAK received (master only)
+            break;
+        case USCI_I2C_UCSTTIFG:     // START condition detected with own address (slave mode only)
+            break;
+        case USCI_I2C_UCSTPIFG:     // STOP condition detected (master & slave mode)
+            break;
+        case USCI_I2C_UCRXIFG3:     // RXIFG3
+            break;
+        case USCI_I2C_UCTXIFG3:     // TXIFG3
+            break;
+        case USCI_I2C_UCRXIFG2:     // RXIFG2
+            break;
+        case USCI_I2C_UCTXIFG2:     // TXIFG2
+            break;
+        case USCI_I2C_UCRXIFG1:     // RXIFG1
+            break;
+        case USCI_I2C_UCTXIFG1:     // TXIFG1
+            break;
+        case USCI_I2C_UCRXIFG0:     // RXIFG0
+            // Read command from master
+            commandID = EUSCI_B_I2C_slaveGetData(EUSCI_B0_BASE);
+            // Pass to command handler
+            suspendI2CInterrupts(); // Suspend interrupts during command handling
+            commandHandler();
+            break;
+        case USCI_I2C_UCTXIFG0:     // TXIFG0
+            break;
+        case USCI_I2C_UCBCNTIFG:    // Byte count limit reached (UCBxTBCNT)
+            break;
+        case USCI_I2C_UCCLTOIFG:    // Clock low timeout - clock held low too long
+            break;
+        case USCI_I2C_UCBIT9IFG:    // Generated on 9th bit of a transmit (for debugging)
+            break;
+        default:
+            break;
     }
 }
 
@@ -119,33 +256,48 @@ void RTC_B_ISR (void)
 void run(){
 
     switch(app){
-        /* Mode after power-on when pin is pulled, count-down before switching to idle state */
+        /* Count-down mode after power-on before switching to idle state */
         case timer_mode:
-            /* Ensure LED1 is only on in idle mode */
-            GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);
-            GPIO_setOutputLowOnPin(GPIO_PORT_P4, GPIO_PIN6);
-
-            /* Starts countdown using an alarm set for 30 minutes after power-on */
-            startCountdownAlarm();
-
+            startCountdownAlarm(); // Starts countdown using 30 minute alarm
             break;
-        /* Mode after timer_mode is up */
+        /* Idle state */
         case idle:
-            /* Turn on LED to simulate idle state */
-            GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);
-            GPIO_setOutputHighOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            resumeI2CInterrupts(); // Resume interrupts after executing command
             break;
+        /* Single-use function to power on main board before changing to idle mode */
         case power_cdh:
-            /* Ensure LED1 is only on in idle mode */
-            GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);
-            GPIO_setOutputLowOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            break;
+        /* Modes used for each command */
+        case system_status:
+            // do something
+            GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);  // Green LED on
+            GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
+            app = idle;
+            break;
+        case health_check:
+            // do something
+            GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);  // Red LED on
+            GPIO_setOutputHighOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            app = idle;
             break;
         case temp_reading:
-            /* Ensure LED1 is only on in idle mode */
-            GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);
-            GPIO_setOutputLowOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            // do something
+            GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);  // Red and Green LEDs on
+            GPIO_setOutputHighOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
+            GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
+            app = idle;
             break;
-
+        case telecom_acknowledge:
+            // do something
+            GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);  // Flash both LEDs
+            GPIO_toggleOutputOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            GPIO_toggleOutputOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
+            GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
+            GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
+            app = idle;
+            break;
     }
 
 }
