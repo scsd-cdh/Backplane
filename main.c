@@ -40,17 +40,14 @@
 #include <driverlib.h>
 #include "app/app.h"
 
-/**
- * hello.c
- */
+
 int main(void)
 {
 
-    WDT_A_hold(WDT_A_BASE);     // Stop watchdog
+    WDT_A_hold(WDT_A_BASE);     // Stop watchdog timer
     PMM_unlockLPM5();           // Disable the GPIO power-on default high-impedance mode
 
-    init_App();
-
+    init_App();                 // Set variables for app
 
     while(1){
         run();

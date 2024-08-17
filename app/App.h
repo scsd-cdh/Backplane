@@ -1,8 +1,8 @@
 /*
  * App.h
  *
- *  Created on: Apr 6, 2024
- *      Author: Amir
+ *  Created on: Aug 10, 2024
+ *      Author: Rowan
  */
 
 #ifndef APP_APP_H_
@@ -19,6 +19,9 @@ typedef enum
 
 
 void init_App();
+
+void startCountdownCounter();
+void startCountdownAlarm();
 
 void run();
 
