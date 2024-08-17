@@ -1,10 +1,10 @@
 ******************************************************************************
                   MSP430 Linker PC v21.6.1                     
 ******************************************************************************
->> Linked Thu Aug 15 19:36:07 2024
+>> Linked Sat Aug 17 13:17:03 2024
 
 OUTPUT FILE NAME:   <Backplane.out>
-ENTRY POINT SYMBOL: "_c_int00_noargs_mpu"  address: 0000447e
+ENTRY POINT SYMBOL: "_c_int00_noargs_mpu"  address: 00004430
 
 
 MEMORY CONFIGURATION
@@ -18,8 +18,8 @@ MEMORY CONFIGURATION
   INFOC                 00001880   00000080  00000000  00000080  RWIX
   INFOB                 00001900   00000080  00000000  00000080  RWIX
   INFOA                 00001980   00000080  00000000  00000080  RWIX
-  RAM                   00001c00   00000800  000000a4  0000075c  RWIX
-  FRAM                  00004400   0000bb80  000000d8  0000baa8  RWIX
+  RAM                   00001c00   00000800  000000a2  0000075e  RWIX
+  FRAM                  00004400   0000bb80  0000008a  0000baf6  RWIX
   JTAGSIGNATURE         0000ff80   00000004  00000004  00000000  RWIX  ffff 
   BSLSIGNATURE          0000ff84   00000004  00000004  00000000  RWIX  ffff 
   IPESIGNATURE          0000ff88   00000008  00000008  00000000  RWIX  ffff 
@@ -79,7 +79,7 @@ MEMORY CONFIGURATION
   INT53                 0000fffa   00000002  00000002  00000000  RWIX
   INT54                 0000fffc   00000002  00000002  00000000  RWIX
   RESET                 0000fffe   00000002  00000002  00000000  RWIX
-  FRAM2                 00010000   00003ff8  000004a2  00003b56  RWIX
+  FRAM2                 00010000   00003ff8  00000482  00003b76  RWIX
 
 
 SECTION ALLOCATION MAP
@@ -108,10 +108,10 @@ section   page    origin      length       input sections
 .ipe_vars 
 *          0    00004400    00000000     UNINITIALIZED
 
-.cinit     0    000044c6    00000012     
-                  000044c6    00000006     (.cinit..bss.load) [load image, compression = zero_init]
-                  000044cc    00000004     (__TI_handler_table)
-                  000044d0    00000008     (__TI_cinit_table)
+.cinit     0    00004478    00000012     
+                  00004478    00000006     (.cinit..bss.load) [load image, compression = zero_init]
+                  0000447e    00000004     (__TI_handler_table)
+                  00004482    00000008     (__TI_cinit_table)
 
 .binit     0    00004400    00000000     
 
@@ -119,13 +119,13 @@ section   page    origin      length       input sections
 *          0    00004400    00000000     UNINITIALIZED
 
 .text:_isr 
-*          0    00004400    000000a6     
-                  00004400    0000007e     App.obj (.text:_isr:RTC_B_ISR)
-                  0000447e    00000020     rts430x_lc_rd_eabi.lib : boot.c.obj (.text:_isr:_c_int00_noargs_mpu)
-                  0000449e    00000008                            : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
+*          0    00004400    00000058     
+                  00004400    00000030     App.obj (.text:_isr:RTC_B_ISR)
+                  00004430    00000020     rts430x_lc_rd_eabi.lib : boot.c.obj (.text:_isr:_c_int00_noargs_mpu)
+                  00004450    00000008                            : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
 
-.bss       0    00001c00    00000004     UNINITIALIZED
-                  00001c00    00000004     App.obj (.bss)
+.bss       0    00001c00    00000002     UNINITIALIZED
+                  00001c00    00000002     App.obj (.bss)
 
 .stack     0    00002360    000000a0     UNINITIALIZED
                   00002360    00000004     rts430x_lc_rd_eabi.lib : boot.c.obj (.stack)
@@ -228,11 +228,11 @@ SYSNMI     0    0000fffc    00000002
 .reset     0    0000fffe    00000002     
                   0000fffe    00000002     rts430x_lc_rd_eabi.lib : boot.c.obj (.reset)
 
-.const     0    000044a6    00000020     
-                  000044a6    0000001c     gpio.obj (.const:GPIO_PORT_TO_BASE)
-                  000044c2    00000004     App.obj (.const:$P$T0$1)
+.const     0    00004458    00000020     
+                  00004458    0000001c     gpio.obj (.const:GPIO_PORT_TO_BASE)
+                  00004474    00000004     App.obj (.const:$P$T0$1)
 
-.text      0    00010000    000004a2     
+.text      0    00010000    00000482     
                   00010000    000000c2     App.obj (.text:startCountdownAlarm)
                   000100c2    00000072     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionInputPin)
                   00010134    00000070     App.obj (.text:run)
@@ -249,14 +249,13 @@ SYSNMI     0    0000fffc    00000002
                   000103ee    00000020     wdt_a.obj (.text:WDT_A_hold)
                   0001040e    0000001c     gpio.obj (.text:GPIO_setOutputHighOnPin)
                   0001042a    0000001c     gpio.obj (.text:GPIO_setOutputLowOnPin)
-                  00010446    0000001c     gpio.obj (.text:GPIO_toggleOutputOnPin)
-                  00010462    00000018     main.obj (.text:main)
-                  0001047a    0000000c     rtc_b.obj (.text:RTC_B_startClock)
-                  00010486    0000000a     App.obj (.text:init_App)
-                  00010490    00000006     pmm.obj (.text:PMM_unlockLPM5)
-                  00010496    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
-                  0001049c    00000004                            : pre_init.c.obj (.text:_system_pre_init)
-                  000104a0    00000002                            : startup.c.obj (.text:_system_post_cinit)
+                  00010446    00000018     main.obj (.text:main)
+                  0001045e    0000000c     rtc_b.obj (.text:RTC_B_startClock)
+                  0001046a    00000006     pmm.obj (.text:PMM_unlockLPM5)
+                  00010470    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
+                  00010476    00000006     App.obj (.text:init_App)
+                  0001047c    00000004     rts430x_lc_rd_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  00010480    00000002                            : startup.c.obj (.text:_system_post_cinit)
 
 MODULE SUMMARY
 
@@ -268,18 +267,18 @@ MODULE SUMMARY
        Total:                 24     0         0      
                                                       
     .\app\
-       App.obj                442    6         4      
+       App.obj                360    6         2      
     +--+----------------------+------+---------+---------+
-       Total:                 442    6         4      
+       Total:                 360    6         2      
                                                       
     .\driverlib\MSP430FR5xx_6xx\
        rtc_b.obj              324    0         0      
-       gpio.obj               250    28        0      
+       gpio.obj               222    28        0      
        cs.obj                 58     0         0      
        wdt_a.obj              32     0         0      
        pmm.obj                6      0         0      
     +--+----------------------+------+---------+---------+
-       Total:                 670    28        0      
+       Total:                 642    28        0      
                                                       
     C:\ti\ccs1280\ccs\ccs_base\msp430\lib\FR59xx\MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib
        mpu_init.o             44     0         0      
@@ -324,18 +323,18 @@ MODULE SUMMARY
        Stack:                 0      0         160    
        Linker Generated:      0      18        0      
     +--+----------------------+------+---------+---------+
-       Grand Total:           1352   102       164    
+       Grand Total:           1242   102       162    
 
 
 LINKER GENERATED COPY TABLES
 
-__TI_cinit_table @ 000044d0 records: 1, size/record: 8, table size: 8
-	.bss: load addr=000044c6, load size=00000006 bytes, run addr=00001c00, run size=00000004 bytes, compression=zero_init
+__TI_cinit_table @ 00004482 records: 1, size/record: 8, table size: 8
+	.bss: load addr=00004478, load size=00000006 bytes, run addr=00001c00, run size=00000002 bytes, compression=zero_init
 
 
 LINKER GENERATED HANDLER TABLE
 
-__TI_handler_table @ 000044cc records: 1, size/record: 4, table size: 4
+__TI_handler_table @ 0000447e records: 1, size/record: 4, table size: 4
 	index: 0, handler: __TI_zero_init
 
 
@@ -600,7 +599,7 @@ address   name
 000009ce  AESAXIN_L                                 
 000004be  BCD2BIN                                   
 000004bc  BIN2BCD                                   
-00010496  C$$EXIT                                   
+00010470  C$$EXIT                                   
 0000043e  CAPTIO0CTL                                
 0000043f  CAPTIO0CTL_H                              
 0000043e  CAPTIO0CTL_L                              
@@ -702,7 +701,6 @@ address   name
 000100c2  GPIO_setAsPeripheralModuleFunctionInputPin
 0001040e  GPIO_setOutputHighOnPin                   
 0001042a  GPIO_setOutputLowOnPin                    
-00010446  GPIO_toggleOutputOnPin                    
 000004c4  MAC                                       
 000004da  MAC32H                                    
 000004db  MAC32H_H                                  
@@ -869,7 +867,7 @@ address   name
 0000012a  PMMIFG                                    
 0000012b  PMMIFG_H                                  
 0000012a  PMMIFG_L                                  
-00010490  PMM_unlockLPM5                            
+0001046a  PMM_unlockLPM5                            
 000001b0  REFCTL0                                   
 000001b1  REFCTL0_H                                 
 000001b0  REFCTL0_L                                 
@@ -931,7 +929,7 @@ address   name
 00010314  RTC_B_disableInterrupt                    
 00010344  RTC_B_enableInterrupt                     
 000101a4  RTC_B_initCalendar                        
-0001047a  RTC_B_startClock                          
+0001045e  RTC_B_startClock                          
 00000100  SFRIE1                                    
 00000101  SFRIE1_H                                  
 00000100  SFRIE1_L                                  
@@ -1140,12 +1138,12 @@ address   name
 000103ee  WDT_A_hold                                
 00002400  __STACK_END                               
 000000a0  __STACK_SIZE                              
-000044d0  __TI_CINIT_Base                           
-000044d8  __TI_CINIT_Limit                          
-000044d8  __TI_CINIT_Warm                           
-000044cc  __TI_Handler_Table_Base                   
-000044d0  __TI_Handler_Table_Limit                  
-0000449e  __TI_ISR_TRAP                             
+00004482  __TI_CINIT_Base                           
+0000448a  __TI_CINIT_Limit                          
+0000448a  __TI_CINIT_Warm                           
+0000447e  __TI_Handler_Table_Base                   
+00004482  __TI_Handler_Table_Limit                  
+00004450  __TI_ISR_TRAP                             
 0001020c  __TI_auto_init_nobinit_nopinit_hold_wdt   
 0000ffcc  __TI_int30                                
 0000ffce  __TI_int31                                
@@ -1179,18 +1177,18 @@ ffffffff  __TI_prof_data_start
 ffffffff  __c_args__                                
 00000001  __mpu_enable                              
 0001039e  __mpu_init                                
-0000447e  _c_int00_noargs_mpu                       
+00004430  _c_int00_noargs_mpu                       
 0000fffe  _reset_vector                             
 00002360  _stack                                    
-000104a0  _system_post_cinit                        
-0001049c  _system_pre_init                          
-00010496  abort                                     
+00010480  _system_post_cinit                        
+0001047c  _system_pre_init                          
+00010470  abort                                     
 00004400  fram_ipe_end                              
 00004400  fram_ipe_start                            
 00004400  fram_rw_start                             
 00004400  fram_rx_start                             
-00010486  init_App                                  
-00010462  main                                      
+00010476  init_App                                  
+00010446  main                                      
 0000a501  mpu_ctl0_value                            
 00001513  mpu_sam_value                             
 00000440  mpu_segment_border1                       
@@ -1994,13 +1992,13 @@ address   name
 00004400  fram_ipe_start                            
 00004400  fram_rw_start                             
 00004400  fram_rx_start                             
-0000447e  _c_int00_noargs_mpu                       
-0000449e  __TI_ISR_TRAP                             
-000044cc  __TI_Handler_Table_Base                   
-000044d0  __TI_CINIT_Base                           
-000044d0  __TI_Handler_Table_Limit                  
-000044d8  __TI_CINIT_Limit                          
-000044d8  __TI_CINIT_Warm                           
+00004430  _c_int00_noargs_mpu                       
+00004450  __TI_ISR_TRAP                             
+0000447e  __TI_Handler_Table_Base                   
+00004482  __TI_CINIT_Base                           
+00004482  __TI_Handler_Table_Limit                  
+0000448a  __TI_CINIT_Limit                          
+0000448a  __TI_CINIT_Warm                           
 0000a501  mpu_ctl0_value                            
 0000ffcc  __TI_int30                                
 0000ffce  __TI_int31                                
@@ -2044,18 +2042,17 @@ address   name
 000103ee  WDT_A_hold                                
 0001040e  GPIO_setOutputHighOnPin                   
 0001042a  GPIO_setOutputLowOnPin                    
-00010446  GPIO_toggleOutputOnPin                    
-00010462  main                                      
-0001047a  RTC_B_startClock                          
-00010486  init_App                                  
-00010490  PMM_unlockLPM5                            
-00010496  C$$EXIT                                   
-00010496  abort                                     
-0001049c  _system_pre_init                          
-000104a0  _system_post_cinit                        
+00010446  main                                      
+0001045e  RTC_B_startClock                          
+0001046a  PMM_unlockLPM5                            
+00010470  C$$EXIT                                   
+00010470  abort                                     
+00010476  init_App                                  
+0001047c  _system_pre_init                          
+00010480  _system_post_cinit                        
 ffffffff  __TI_pprof_out_hndl                       
 ffffffff  __TI_prof_data_size                       
 ffffffff  __TI_prof_data_start                      
 ffffffff  __c_args__                                
 
-[854 symbols]
+[853 symbols]

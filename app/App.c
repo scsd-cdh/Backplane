@@ -12,68 +12,7 @@ static volatile appStatus app;
 static volatile int countdownMinutes;
 
 void init_App(){
-
     app = timer_mode;       // Start in timer mode
-    countdownMinutes = 0;   // Number of minutes before switching to idle mode (used in the "counter" countdown)
-
-}
-
-void startCountdownCounter() {
-
-    Calendar currentTime;
-
-    /*
-    * Select Port J
-    * Set Pin 4, 5 to input Primary Module Function, LFXT.
-    */
-    GPIO_setAsPeripheralModuleFunctionInputPin(
-        GPIO_PORT_PJ,
-        GPIO_PIN4 + GPIO_PIN5,
-        GPIO_PRIMARY_MODULE_FUNCTION
-    );
-
-    //Initialize LFXT1
-    CS_turnOnLFXT(
-        CS_LFXT_DRIVE_3
-        );
-
-    //Setup for Calendar
-    currentTime.Seconds    = 0x00;
-    currentTime.Minutes    = 0x26;
-    currentTime.Hours      = 0x13;
-    currentTime.DayOfWeek  = 0x03;
-    currentTime.DayOfMonth = 0x20;
-    currentTime.Month      = 0x07;
-    currentTime.Year       = 0x2011;
-
-    //Initialize Calendar Mode of RTC
-    RTC_B_initCalendar(RTC_B_BASE, &currentTime, RTC_B_FORMAT_BCD);
-
-    //Specify an interrupt to assert every minute (used to increment minutes)
-    RTC_B_setCalendarEvent(RTC_B_BASE,
-        RTC_B_CALENDAREVENT_MINUTECHANGE);
-
-    RTC_B_clearInterrupt(RTC_B_BASE,
-        RTC_B_CLOCK_READ_READY_INTERRUPT +
-        RTC_B_TIME_EVENT_INTERRUPT +
-        RTC_B_CLOCK_ALARM_INTERRUPT
-        );
-    //Enable interrupt for RTC Ready Status, which asserts when the RTC
-    //Calendar registers are ready to read.
-    //Also, enable interrupts for the Calendar alarm and Calendar event.
-    RTC_B_enableInterrupt(RTC_B_BASE,
-        RTC_B_CLOCK_READ_READY_INTERRUPT +
-        RTC_B_TIME_EVENT_INTERRUPT +
-        RTC_B_CLOCK_ALARM_INTERRUPT
-        );
-
-    //Start RTC Clock
-    RTC_B_startClock(RTC_B_BASE);
-
-    //Enter low power mode with interrupts enabled
-    __bis_SR_register(LPM0_bits + GIE);
-
-    __no_operation();
 
 }
 
@@ -152,35 +91,11 @@ void RTC_B_ISR (void)
 {
     switch (__even_in_range(RTCIV,16)){
         case 2:     //RTCRDYIFG, triggered every second
-            //Toggle P1.0 every second for testing
-            GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
-            GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
-            // Increment minutes
-            countdownMinutes += 1;
             break;
         case 4:     //RTCEVIFG, triggered every minute
-            //Interrupts every minute and increments minutes (used for 'counter' countdown)
-            countdownMinutes += 1;
-            if (countdownMinutes >= 1) {
-                // Disable and clear interrupts, stops LED toggling
-                RTC_B_disableInterrupt(RTC_B_BASE,
-                    RTC_B_CLOCK_READ_READY_INTERRUPT +
-                    RTC_B_TIME_EVENT_INTERRUPT +
-                    RTC_B_CLOCK_ALARM_INTERRUPT
-                    );
-                RTC_B_clearInterrupt(RTC_B_BASE,
-                    RTC_B_CLOCK_READ_READY_INTERRUPT +
-                    RTC_B_TIME_EVENT_INTERRUPT +
-                    RTC_B_CLOCK_ALARM_INTERRUPT
-                    );
-                // Exit low power mode to resume run()
-                __bic_SR_register_on_exit(LPM0_bits);
-                // Switch to idle mode
-                app = idle;
-            }
             break;
-        case 6:     //RTCAIFG, triggers at set alarm (used in 'alarm' countdown)
-            // Disable and clear interrupts, stops LED toggling
+        case 6:     //RTCAIFG, triggers at set alarm
+            // Disable and clear interrupts
             RTC_B_disableInterrupt(RTC_B_BASE,
                 RTC_B_CLOCK_READ_READY_INTERRUPT +
                 RTC_B_TIME_EVENT_INTERRUPT +
@@ -209,9 +124,6 @@ void run(){
             /* Ensure LED1 is only on in idle mode */
             GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);
             GPIO_setOutputLowOnPin(GPIO_PORT_P4, GPIO_PIN6);
-
-            /* Starts countdown using a counter that increments every minute */
-            //startCountdownCounter();
 
             /* Starts countdown using an alarm set for 30 minutes after power-on */
             startCountdownAlarm();
