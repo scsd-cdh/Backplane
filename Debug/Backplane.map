@@ -1,10 +1,10 @@
 ******************************************************************************
                   MSP430 Linker PC v21.6.1                     
 ******************************************************************************
->> Linked Sat Aug 17 16:53:10 2024
+>> Linked Wed Sep 11 19:24:29 2024
 
 OUTPUT FILE NAME:   <Backplane.out>
-ENTRY POINT SYMBOL: "_c_int00_noargs_mpu"  address: 00004458
+ENTRY POINT SYMBOL: "_c_int00_noargs_mpu"  address: 000044b6
 
 
 MEMORY CONFIGURATION
@@ -18,8 +18,8 @@ MEMORY CONFIGURATION
   INFOC                 00001880   00000080  00000000  00000080  RWIX
   INFOB                 00001900   00000080  00000000  00000080  RWIX
   INFOA                 00001980   00000080  00000000  00000080  RWIX
-  RAM                   00001c00   00000800  000000a3  0000075d  RWIX
-  FRAM                  00004400   0000bb80  000000b2  0000bace  RWIX
+  RAM                   00001c00   00000800  000002aa  00000556  RWIX
+  FRAM                  00004400   0000bb80  0000012c  0000ba54  RWIX
   JTAGSIGNATURE         0000ff80   00000004  00000004  00000000  RWIX  ffff 
   BSLSIGNATURE          0000ff84   00000004  00000004  00000000  RWIX  ffff 
   IPESIGNATURE          0000ff88   00000008  00000008  00000000  RWIX  ffff 
@@ -79,7 +79,7 @@ MEMORY CONFIGURATION
   INT53                 0000fffa   00000002  00000002  00000000  RWIX
   INT54                 0000fffc   00000002  00000002  00000000  RWIX
   RESET                 0000fffe   00000002  00000002  00000000  RWIX
-  FRAM2                 00010000   00003ff8  00000546  00003ab2  RWIX
+  FRAM2                 00010000   00003ff8  0000063e  000039ba  RWIX
 
 
 SECTION ALLOCATION MAP
@@ -87,6 +87,13 @@ SECTION ALLOCATION MAP
  output                                  attributes/
 section   page    origin      length       input sections
 --------  ----  ----------  ----------   ----------------
+.data      0    00001c00    00000208     UNINITIALIZED
+                  00001c00    000000ff     App.obj (.data:commandBuffer)
+                  00001cff    00000001     --HOLE--
+                  00001d00    000000ff     App.obj (.data:responseBuffer)
+                  00001dff    00000001     --HOLE--
+                  00001e00    00000008     App.obj (.data)
+
 .TI.persistent 
 *          0    00004400    00000000     UNINITIALIZED
 
@@ -108,10 +115,11 @@ section   page    origin      length       input sections
 .ipe_vars 
 *          0    00004400    00000000     UNINITIALIZED
 
-.cinit     0    000044a0    00000012     
-                  000044a0    00000006     (.cinit..bss.load) [load image, compression = zero_init]
-                  000044a6    00000004     (__TI_handler_table)
-                  000044aa    00000008     (__TI_cinit_table)
+.cinit     0    000044fe    0000002e     
+                  000044fe    0000000c     (.cinit..data.load) [load image, compression = lzss]
+                  0000450a    0000000c     (__TI_handler_table)
+                  00004516    00000006     (.cinit..bss.load) [load image, compression = zero_init]
+                  0000451c    00000010     (__TI_cinit_table)
 
 .binit     0    00004400    00000000     
 
@@ -119,14 +127,14 @@ section   page    origin      length       input sections
 *          0    00004400    00000000     UNINITIALIZED
 
 .text:_isr 
-*          0    00004400    00000080     
-                  00004400    00000030     App.obj (.text:_isr:RTC_B_ISR)
-                  00004430    00000028     App.obj (.text:_isr:USCIB0_ISR)
-                  00004458    00000020     rts430x_lc_rd_eabi.lib : boot.c.obj (.text:_isr:_c_int00_noargs_mpu)
-                  00004478    00000008                            : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
+*          0    00004400    000000de     
+                  00004400    00000086     App.obj (.text:_isr:USCIB0_ISR)
+                  00004486    00000030     App.obj (.text:_isr:RTC_B_ISR)
+                  000044b6    00000020     rts430x_lc_rd_eabi.lib : boot.c.obj (.text:_isr:_c_int00_noargs_mpu)
+                  000044d6    00000008                            : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
 
-.bss       0    00001c00    00000003     UNINITIALIZED
-                  00001c00    00000003     App.obj (.bss)
+.bss       0    00001e08    00000002     UNINITIALIZED
+                  00001e08    00000002     App.obj (.bss)
 
 .stack     0    00002360    000000a0     UNINITIALIZED
                   00002360    00000004     rts430x_lc_rd_eabi.lib : boot.c.obj (.stack)
@@ -229,120 +237,130 @@ SYSNMI     0    0000fffc    00000002
 .reset     0    0000fffe    00000002     
                   0000fffe    00000002     rts430x_lc_rd_eabi.lib : boot.c.obj (.reset)
 
-.const     0    00004480    00000020     
-                  00004480    0000001c     gpio.obj (.const:GPIO_PORT_TO_BASE)
-                  0000449c    00000004     App.obj (.const:$P$T0$1)
+.const     0    000044de    00000020     
+                  000044de    0000001c     gpio.obj (.const:GPIO_PORT_TO_BASE)
+                  000044fa    00000004     App.obj (.const:$P$T0$1)
 
-.text      0    00010000    00000546     
-                  00010000    000000c2     App.obj (.text:startCountdownAlarm)
-                  000100c2    000000be     App.obj (.text:run)
-                  00010180    00000072     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionInputPin)
-                  000101f2    00000068     rtc_b.obj (.text:RTC_B_initCalendar)
-                  0001025a    00000054     rts430x_lc_rd_eabi.lib : autoinit.c.obj (.text:__TI_auto_init_nobinit_nopinit_hold_wdt:__TI_auto_init_nobinit_nopinit_hold_wdt)
-                  000102ae    00000046     rtc_b.obj (.text:RTC_B_configureCalendarAlarm)
-                  000102f4    0000003a     cs.obj (.text:CS_turnOnLFXT)
-                  0001032e    00000034     gpio.obj (.text:GPIO_setAsOutputPin)
-                  00010362    00000034     App.obj (.text:commandHandler)
-                  00010396    00000030     rtc_b.obj (.text:RTC_B_disableInterrupt)
-                  000103c6    0000002e     rtc_b.obj (.text:RTC_B_enableInterrupt)
-                  000103f4    0000002c     rtc_b.obj (.text:RTC_B_clearInterrupt)
-                  00010420    0000002c     MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib : mpu_init.o (.text:__mpu_init)
-                  0001044c    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
-                  00010470    00000020     wdt_a.obj (.text:WDT_A_hold)
-                  00010490    0000001c     gpio.obj (.text:GPIO_setOutputHighOnPin)
-                  000104ac    0000001c     gpio.obj (.text:GPIO_toggleOutputOnPin)
-                  000104c8    00000018     main.obj (.text:main)
-                  000104e0    00000014     App.obj (.text:resumeI2CInterrupts)
-                  000104f4    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_disableInterrupt)
-                  00010500    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_enableInterrupt)
-                  0001050c    0000000c     rtc_b.obj (.text:RTC_B_startClock)
-                  00010518    0000000c     App.obj (.text:suspendI2CInterrupts)
-                  00010524    0000000a     eusci_b_i2c.obj (.text:EUSCI_B_I2C_slaveGetData)
-                  0001052e    00000006     pmm.obj (.text:PMM_unlockLPM5)
-                  00010534    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
-                  0001053a    00000006     App.obj (.text:init_App)
-                  00010540    00000004     rts430x_lc_rd_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
-                  00010544    00000002                            : startup.c.obj (.text:_system_post_cinit)
+.text      0    00010000    0000063e     
+                  00010000    000000c6     App.obj (.text:run)
+                  000100c6    000000c2     App.obj (.text:startCountdownAlarm)
+                  00010188    0000007c     App.obj (.text:commandHandler)
+                  00010204    00000076     rts430x_lc_rd_eabi.lib : copy_decompress_lzss.c.obj (.text:decompress:lzss:__TI_decompress_lzss)
+                  0001027a    00000072     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionInputPin)
+                  000102ec    00000068     rtc_b.obj (.text:RTC_B_initCalendar)
+                  00010354    00000054     rts430x_lc_rd_eabi.lib : autoinit.c.obj (.text:__TI_auto_init_nobinit_nopinit_hold_wdt:__TI_auto_init_nobinit_nopinit_hold_wdt)
+                  000103a8    00000046     rtc_b.obj (.text:RTC_B_configureCalendarAlarm)
+                  000103ee    0000003a     cs.obj (.text:CS_turnOnLFXT)
+                  00010428    00000034     gpio.obj (.text:GPIO_setAsOutputPin)
+                  0001045c    00000030     rtc_b.obj (.text:RTC_B_disableInterrupt)
+                  0001048c    0000002e     rtc_b.obj (.text:RTC_B_enableInterrupt)
+                  000104ba    0000002c     rtc_b.obj (.text:RTC_B_clearInterrupt)
+                  000104e6    0000002c     MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib : mpu_init.o (.text:__mpu_init)
+                  00010512    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
+                  00010536    00000020     wdt_a.obj (.text:WDT_A_hold)
+                  00010556    0000001c     gpio.obj (.text:GPIO_setOutputHighOnPin)
+                  00010572    0000001c     gpio.obj (.text:GPIO_toggleOutputOnPin)
+                  0001058e    00000018     main.obj (.text:main)
+                  000105a6    00000014     rts430x_lc_rd_eabi.lib : memcpy.c.obj (.text:memcpy)
+                  000105ba    00000014     App.obj (.text:resumeI2CInterrupts)
+                  000105ce    00000012     rts430x_lc_rd_eabi.lib : copy_decompress_none.c.obj (.text:decompress:none:__TI_decompress_none)
+                  000105e0    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_disableInterrupt)
+                  000105ec    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_enableInterrupt)
+                  000105f8    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_slavePutData)
+                  00010604    0000000c     rtc_b.obj (.text:RTC_B_startClock)
+                  00010610    0000000c     App.obj (.text:suspendI2CInterrupts)
+                  0001061c    0000000a     eusci_b_i2c.obj (.text:EUSCI_B_I2C_slaveGetData)
+                  00010626    00000006     pmm.obj (.text:PMM_unlockLPM5)
+                  0001062c    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
+                  00010632    00000006     App.obj (.text:init_App)
+                  00010638    00000004     rts430x_lc_rd_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  0001063c    00000002                            : startup.c.obj (.text:_system_post_cinit)
 
 MODULE SUMMARY
 
-       Module                 code   ro data   rw data
-       ------                 ----   -------   -------
+       Module                       code   ro data   rw data
+       ------                       ----   -------   -------
     .\
-       main.obj               24     0         0      
-    +--+----------------------+------+---------+---------+
-       Total:                 24     0         0      
-                                                      
+       main.obj                     24     0         0      
+    +--+----------------------------+------+---------+---------+
+       Total:                       24     0         0      
+                                                            
     .\app\
-       App.obj                562    8         3      
-    +--+----------------------+------+---------+---------+
-       Total:                 562    8         3      
-                                                      
+       App.obj                      736    8         520    
+    +--+----------------------------+------+---------+---------+
+       Total:                       736    8         520    
+                                                            
     .\driverlib\MSP430FR5xx_6xx\
-       rtc_b.obj              324    0         0      
-       gpio.obj               222    28        0      
-       cs.obj                 58     0         0      
-       eusci_b_i2c.obj        34     0         0      
-       wdt_a.obj              32     0         0      
-       pmm.obj                6      0         0      
-    +--+----------------------+------+---------+---------+
-       Total:                 676    28        0      
-                                                      
+       rtc_b.obj                    324    0         0      
+       gpio.obj                     222    28        0      
+       cs.obj                       58     0         0      
+       eusci_b_i2c.obj              46     0         0      
+       wdt_a.obj                    32     0         0      
+       pmm.obj                      6      0         0      
+    +--+----------------------------+------+---------+---------+
+       Total:                       688    28        0      
+                                                            
     C:\ti\ccs1280\ccs\ccs_base\msp430\lib\FR59xx\MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib
-       mpu_init.o             44     0         0      
-    +--+----------------------+------+---------+---------+
-       Total:                 44     0         0      
-                                                      
+       mpu_init.o                   44     0         0      
+    +--+----------------------------+------+---------+---------+
+       Total:                       44     0         0      
+                                                            
     C:\ti\ccs1280\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\rts430x_lc_rd_eabi.lib
-       autoinit.c.obj         84     0         0      
-       copy_zero_init.c.obj   36     0         0      
-       boot.c.obj             32     2         0      
-       isr_trap.asm.obj       8      0         0      
-       exit.c.obj             6      0         0      
-       pre_init.c.obj         4      0         0      
-       int30.asm.obj          0      2         0      
-       int32.asm.obj          0      2         0      
-       int33.asm.obj          0      2         0      
-       int34.asm.obj          0      2         0      
-       int35.asm.obj          0      2         0      
-       int36.asm.obj          0      2         0      
-       int37.asm.obj          0      2         0      
-       int38.asm.obj          0      2         0      
-       int39.asm.obj          0      2         0      
-       int40.asm.obj          0      2         0      
-       int41.asm.obj          0      2         0      
-       int42.asm.obj          0      2         0      
-       int43.asm.obj          0      2         0      
-       int44.asm.obj          0      2         0      
-       int45.asm.obj          0      2         0      
-       int46.asm.obj          0      2         0      
-       int48.asm.obj          0      2         0      
-       int49.asm.obj          0      2         0      
-       int50.asm.obj          0      2         0      
-       int51.asm.obj          0      2         0      
-       int52.asm.obj          0      2         0      
-       int53.asm.obj          0      2         0      
-       int54.asm.obj          0      2         0      
-       startup.c.obj          2      0         0      
-    +--+----------------------+------+---------+---------+
-       Total:                 172    48        0      
-                                                      
-       Stack:                 0      0         160    
-       Linker Generated:      0      18        0      
-    +--+----------------------+------+---------+---------+
-       Grand Total:           1478   102       163    
+       copy_decompress_lzss.c.obj   118    0         0      
+       autoinit.c.obj               84     0         0      
+       copy_zero_init.c.obj         36     0         0      
+       boot.c.obj                   32     2         0      
+       memcpy.c.obj                 20     0         0      
+       copy_decompress_none.c.obj   18     0         0      
+       isr_trap.asm.obj             8      0         0      
+       exit.c.obj                   6      0         0      
+       pre_init.c.obj               4      0         0      
+       int30.asm.obj                0      2         0      
+       int32.asm.obj                0      2         0      
+       int33.asm.obj                0      2         0      
+       int34.asm.obj                0      2         0      
+       int35.asm.obj                0      2         0      
+       int36.asm.obj                0      2         0      
+       int37.asm.obj                0      2         0      
+       int38.asm.obj                0      2         0      
+       int39.asm.obj                0      2         0      
+       int40.asm.obj                0      2         0      
+       int41.asm.obj                0      2         0      
+       int42.asm.obj                0      2         0      
+       int43.asm.obj                0      2         0      
+       int44.asm.obj                0      2         0      
+       int45.asm.obj                0      2         0      
+       int46.asm.obj                0      2         0      
+       int48.asm.obj                0      2         0      
+       int49.asm.obj                0      2         0      
+       int50.asm.obj                0      2         0      
+       int51.asm.obj                0      2         0      
+       int52.asm.obj                0      2         0      
+       int53.asm.obj                0      2         0      
+       int54.asm.obj                0      2         0      
+       startup.c.obj                2      0         0      
+    +--+----------------------------+------+---------+---------+
+       Total:                       328    48        0      
+                                                            
+       Stack:                       0      0         160    
+       Linker Generated:            0      46        0      
+    +--+----------------------------+------+---------+---------+
+       Grand Total:                 1820   130       680    
 
 
 LINKER GENERATED COPY TABLES
 
-__TI_cinit_table @ 000044aa records: 1, size/record: 8, table size: 8
-	.bss: load addr=000044a0, load size=00000006 bytes, run addr=00001c00, run size=00000003 bytes, compression=zero_init
+__TI_cinit_table @ 0000451c records: 2, size/record: 8, table size: 16
+	.data: load addr=000044fe, load size=0000000c bytes, run addr=00001c00, run size=00000208 bytes, compression=lzss
+	.bss: load addr=00004516, load size=00000006 bytes, run addr=00001e08, run size=00000002 bytes, compression=zero_init
 
 
 LINKER GENERATED HANDLER TABLE
 
-__TI_handler_table @ 000044a6 records: 1, size/record: 4, table size: 4
+__TI_handler_table @ 0000450a records: 3, size/record: 4, table size: 12
 	index: 0, handler: __TI_zero_init
+	index: 1, handler: __TI_decompress_lzss
+	index: 2, handler: __TI_decompress_none
 
 
 GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
@@ -606,7 +624,7 @@ address   name
 000009ce  AESAXIN_L                                 
 000004be  BCD2BIN                                   
 000004bc  BIN2BCD                                   
-00010534  C$$EXIT                                   
+0001062c  C$$EXIT                                   
 0000043e  CAPTIO0CTL                                
 0000043f  CAPTIO0CTL_H                              
 0000043e  CAPTIO0CTL_L                              
@@ -664,7 +682,7 @@ address   name
 0000016c  CSCTL6                                    
 0000016d  CSCTL6_H                                  
 0000016c  CSCTL6_L                                  
-000102f4  CS_turnOnLFXT                             
+000103ee  CS_turnOnLFXT                             
 00000510  DMA0CTL                                   
 00000516  DMA0DA                                    
 00000518  DMA0DAH                                   
@@ -695,9 +713,10 @@ address   name
 00000506  DMACTL3                                   
 00000508  DMACTL4                                   
 0000050e  DMAIV                                     
-000104f4  EUSCI_B_I2C_disableInterrupt              
-00010500  EUSCI_B_I2C_enableInterrupt               
-00010524  EUSCI_B_I2C_slaveGetData                  
+000105e0  EUSCI_B_I2C_disableInterrupt              
+000105ec  EUSCI_B_I2C_enableInterrupt               
+0001061c  EUSCI_B_I2C_slaveGetData                  
+000105f8  EUSCI_B_I2C_slavePutData                  
 00000140  FRCTL0                                    
 00000141  FRCTL0_H                                  
 00000140  FRCTL0_L                                  
@@ -707,10 +726,10 @@ address   name
 00000146  GCCTL1                                    
 00000147  GCCTL1_H                                  
 00000146  GCCTL1_L                                  
-0001032e  GPIO_setAsOutputPin                       
-00010180  GPIO_setAsPeripheralModuleFunctionInputPin
-00010490  GPIO_setOutputHighOnPin                   
-000104ac  GPIO_toggleOutputOnPin                    
+00010428  GPIO_setAsOutputPin                       
+0001027a  GPIO_setAsPeripheralModuleFunctionInputPin
+00010556  GPIO_setOutputHighOnPin                   
+00010572  GPIO_toggleOutputOnPin                    
 000004c4  MAC                                       
 000004da  MAC32H                                    
 000004db  MAC32H_H                                  
@@ -877,7 +896,7 @@ address   name
 0000012a  PMMIFG                                    
 0000012b  PMMIFG_H                                  
 0000012a  PMMIFG_L                                  
-0001052e  PMM_unlockLPM5                            
+00010626  PMM_unlockLPM5                            
 000001b0  REFCTL0                                   
 000001b1  REFCTL0_H                                 
 000001b0  REFCTL0_L                                 
@@ -933,13 +952,13 @@ address   name
 000004b6  RTCYEAR                                   
 000004b7  RTCYEAR_H                                 
 000004b6  RTCYEAR_L                                 
-00004400  RTC_B_ISR                                 
-000103f4  RTC_B_clearInterrupt                      
-000102ae  RTC_B_configureCalendarAlarm              
-00010396  RTC_B_disableInterrupt                    
-000103c6  RTC_B_enableInterrupt                     
-000101f2  RTC_B_initCalendar                        
-0001050c  RTC_B_startClock                          
+00004486  RTC_B_ISR                                 
+000104ba  RTC_B_clearInterrupt                      
+000103a8  RTC_B_configureCalendarAlarm              
+0001045c  RTC_B_disableInterrupt                    
+0001048c  RTC_B_enableInterrupt                     
+000102ec  RTC_B_initCalendar                        
+00010604  RTC_B_startClock                          
 00000100  SFRIE1                                    
 00000101  SFRIE1_H                                  
 00000100  SFRIE1_L                                  
@@ -1142,20 +1161,22 @@ address   name
 0000064e  UCB0TXBUF                                 
 0000064f  UCB0TXBUF_H                               
 0000064e  UCB0TXBUF_L                               
-00004430  USCIB0_ISR                                
+00004400  USCIB0_ISR                                
 0000015c  WDTCTL                                    
 0000015d  WDTCTL_H                                  
 0000015c  WDTCTL_L                                  
-00010470  WDT_A_hold                                
+00010536  WDT_A_hold                                
 00002400  __STACK_END                               
 000000a0  __STACK_SIZE                              
-000044aa  __TI_CINIT_Base                           
-000044b2  __TI_CINIT_Limit                          
-000044b2  __TI_CINIT_Warm                           
-000044a6  __TI_Handler_Table_Base                   
-000044aa  __TI_Handler_Table_Limit                  
-00004478  __TI_ISR_TRAP                             
-0001025a  __TI_auto_init_nobinit_nopinit_hold_wdt   
+0000451c  __TI_CINIT_Base                           
+0000452c  __TI_CINIT_Limit                          
+0000452c  __TI_CINIT_Warm                           
+0000450a  __TI_Handler_Table_Base                   
+00004516  __TI_Handler_Table_Limit                  
+000044d6  __TI_ISR_TRAP                             
+00010354  __TI_auto_init_nobinit_nopinit_hold_wdt   
+00010204  __TI_decompress_lzss                      
+000105ce  __TI_decompress_none                      
 0000ffcc  __TI_int30                                
 0000ffce  __TI_int31                                
 0000ffd0  __TI_int32                                
@@ -1184,31 +1205,33 @@ address   name
 ffffffff  __TI_pprof_out_hndl                       
 ffffffff  __TI_prof_data_size                       
 ffffffff  __TI_prof_data_start                      
-0001044c  __TI_zero_init_nomemset                   
+00010512  __TI_zero_init_nomemset                   
 ffffffff  __c_args__                                
 00000001  __mpu_enable                              
-00010420  __mpu_init                                
-00004458  _c_int00_noargs_mpu                       
+000104e6  __mpu_init                                
+000044b6  _c_int00_noargs_mpu                       
 0000fffe  _reset_vector                             
 00002360  _stack                                    
-00010544  _system_post_cinit                        
-00010540  _system_pre_init                          
-00010534  abort                                     
-00010362  commandHandler                            
+0001063c  _system_post_cinit                        
+00010638  _system_pre_init                          
+0001062c  abort                                     
+00010188  commandHandler                            
 00004400  fram_ipe_end                              
 00004400  fram_ipe_start                            
 00004400  fram_rw_start                             
 00004400  fram_rx_start                             
-0001053a  init_App                                  
-000104c8  main                                      
+00010632  init_App                                  
+0001058e  main                                      
+000105a6  memcpy                                    
 0000a501  mpu_ctl0_value                            
 00001513  mpu_sam_value                             
 00000440  mpu_segment_border1                       
 00000440  mpu_segment_border2                       
-000104e0  resumeI2CInterrupts                       
-000100c2  run                                       
-00010000  startCountdownAlarm                       
-00010518  suspendI2CInterrupts                      
+000105ba  resumeI2CInterrupts                       
+00010000  run                                       
+000100c6  startCountdownAlarm                       
+00001e00  stopCondition                             
+00010610  suspendI2CInterrupts                      
 
 
 GLOBAL SYMBOLS: SORTED BY Symbol Address 
@@ -1999,21 +2022,22 @@ address   name
 000009ce  AESAXIN_L                                 
 000009cf  AESAXIN_H                                 
 00001513  mpu_sam_value                             
+00001e00  stopCondition                             
 00002360  _stack                                    
 00002400  __STACK_END                               
-00004400  RTC_B_ISR                                 
+00004400  USCIB0_ISR                                
 00004400  fram_ipe_end                              
 00004400  fram_ipe_start                            
 00004400  fram_rw_start                             
 00004400  fram_rx_start                             
-00004430  USCIB0_ISR                                
-00004458  _c_int00_noargs_mpu                       
-00004478  __TI_ISR_TRAP                             
-000044a6  __TI_Handler_Table_Base                   
-000044aa  __TI_CINIT_Base                           
-000044aa  __TI_Handler_Table_Limit                  
-000044b2  __TI_CINIT_Limit                          
-000044b2  __TI_CINIT_Warm                           
+00004486  RTC_B_ISR                                 
+000044b6  _c_int00_noargs_mpu                       
+000044d6  __TI_ISR_TRAP                             
+0000450a  __TI_Handler_Table_Base                   
+00004516  __TI_Handler_Table_Limit                  
+0000451c  __TI_CINIT_Base                           
+0000452c  __TI_CINIT_Limit                          
+0000452c  __TI_CINIT_Warm                           
 0000a501  mpu_ctl0_value                            
 0000ffcc  __TI_int30                                
 0000ffce  __TI_int31                                
@@ -2041,39 +2065,43 @@ address   name
 0000fffa  __TI_int53                                
 0000fffc  __TI_int54                                
 0000fffe  _reset_vector                             
-00010000  startCountdownAlarm                       
-000100c2  run                                       
-00010180  GPIO_setAsPeripheralModuleFunctionInputPin
-000101f2  RTC_B_initCalendar                        
-0001025a  __TI_auto_init_nobinit_nopinit_hold_wdt   
-000102ae  RTC_B_configureCalendarAlarm              
-000102f4  CS_turnOnLFXT                             
-0001032e  GPIO_setAsOutputPin                       
-00010362  commandHandler                            
-00010396  RTC_B_disableInterrupt                    
-000103c6  RTC_B_enableInterrupt                     
-000103f4  RTC_B_clearInterrupt                      
-00010420  __mpu_init                                
-0001044c  __TI_zero_init_nomemset                   
-00010470  WDT_A_hold                                
-00010490  GPIO_setOutputHighOnPin                   
-000104ac  GPIO_toggleOutputOnPin                    
-000104c8  main                                      
-000104e0  resumeI2CInterrupts                       
-000104f4  EUSCI_B_I2C_disableInterrupt              
-00010500  EUSCI_B_I2C_enableInterrupt               
-0001050c  RTC_B_startClock                          
-00010518  suspendI2CInterrupts                      
-00010524  EUSCI_B_I2C_slaveGetData                  
-0001052e  PMM_unlockLPM5                            
-00010534  C$$EXIT                                   
-00010534  abort                                     
-0001053a  init_App                                  
-00010540  _system_pre_init                          
-00010544  _system_post_cinit                        
+00010000  run                                       
+000100c6  startCountdownAlarm                       
+00010188  commandHandler                            
+00010204  __TI_decompress_lzss                      
+0001027a  GPIO_setAsPeripheralModuleFunctionInputPin
+000102ec  RTC_B_initCalendar                        
+00010354  __TI_auto_init_nobinit_nopinit_hold_wdt   
+000103a8  RTC_B_configureCalendarAlarm              
+000103ee  CS_turnOnLFXT                             
+00010428  GPIO_setAsOutputPin                       
+0001045c  RTC_B_disableInterrupt                    
+0001048c  RTC_B_enableInterrupt                     
+000104ba  RTC_B_clearInterrupt                      
+000104e6  __mpu_init                                
+00010512  __TI_zero_init_nomemset                   
+00010536  WDT_A_hold                                
+00010556  GPIO_setOutputHighOnPin                   
+00010572  GPIO_toggleOutputOnPin                    
+0001058e  main                                      
+000105a6  memcpy                                    
+000105ba  resumeI2CInterrupts                       
+000105ce  __TI_decompress_none                      
+000105e0  EUSCI_B_I2C_disableInterrupt              
+000105ec  EUSCI_B_I2C_enableInterrupt               
+000105f8  EUSCI_B_I2C_slavePutData                  
+00010604  RTC_B_startClock                          
+00010610  suspendI2CInterrupts                      
+0001061c  EUSCI_B_I2C_slaveGetData                  
+00010626  PMM_unlockLPM5                            
+0001062c  C$$EXIT                                   
+0001062c  abort                                     
+00010632  init_App                                  
+00010638  _system_pre_init                          
+0001063c  _system_post_cinit                        
 ffffffff  __TI_pprof_out_hndl                       
 ffffffff  __TI_prof_data_size                       
 ffffffff  __TI_prof_data_start                      
 ffffffff  __c_args__                                
 
-[860 symbols]
+[865 symbols]

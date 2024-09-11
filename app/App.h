@@ -28,6 +28,22 @@ enum Command
     TelecomAcknowledge = 0x06,
 };
 
+enum CommandSize  // ID + stop condition
+{
+    SystemStatusSize = 0x02,
+    HealthCheckSize = 0x02,
+    TemperatureSize = 0x02,
+    TelecomAcknowledgeSize = 0x02,
+};
+
+enum ResponseSize  // payload size + stop condition
+{
+    SystemStatusRespSize = 0x06,        // 0x05 + 1
+    HealthCheckRespSize = 0x11,         // 0x10 + 1
+    TemperatureRespSize = 0x02,         // Not defined in doc
+    TelecomAcknowledgeRespSize = 0x03,  // 0x02 + 1
+};
+
 void init_App();
 
 void startCountdownCounter();

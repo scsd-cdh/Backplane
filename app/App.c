@@ -8,14 +8,23 @@
 #include <app/App.h>
 #include <driverlib.h>
 
-#define SLAVE_ADDRESS 0x48
+#define SLAVE_ADDRESS 0x08
+uint8_t stopCondition = 0x13;
 
-static volatile appStatus app;
-static volatile uint8_t commandID;
+
+// 255 is used instead of a defined literal because the use of one led to a definition error
+
+static volatile appStatus app;  // Current state of the Backplane
+
+static uint8_t commandBuffer[255] = {0};    // Buffer for receiving commands from OBC
+static volatile uint8_t bytesReceived = 0;      // Number of bytes received from OBC for one command
+static volatile uint8_t receivingData = 0;      // Acts like a boolean
+
+static uint8_t responseBuffer[255] = {0};   // Buffer for response to be sent to OBC
+static volatile uint8_t *responsePointer = 0;
 
 void init_App(){
     app = timer_mode;       // Start in timer mode
-
 }
 
 
@@ -180,22 +189,46 @@ void resumeI2CInterrupts() {
 
 void commandHandler() {
 
-    switch(commandID){
+    switch(commandBuffer[0]){  // Command ID will always be the first byte transmitted
 
         case SystemStatus:
-            app = system_status;
+            if (bytesReceived != SystemStatusSize) {
+                // return error
+            } else if (commandBuffer[bytesReceived] != stopCondition) {
+                // return error
+            } else {
+                app = system_status;
+            }
             break;
         case HealthCheck:
-            app = health_check;
+            if (bytesReceived != HealthCheckSize) {
+                // return error
+            } else if (commandBuffer[bytesReceived] != stopCondition) {
+                // return error
+            } else {
+                app = health_check;
+            }
             break;
         case Temperature:
-            app = temp_reading;
+            if (bytesReceived != TemperatureSize) {
+                // return error
+            } else if (commandBuffer[bytesReceived] != stopCondition) {
+                // return error
+            } else {
+                app = temp_reading;
+            }
             break;
         case TelecomAcknowledge:
-            app = telecom_acknowledge;
+            if (bytesReceived != TelecomAcknowledgeSize) {
+                // return error
+            } else if (commandBuffer[bytesReceived] != stopCondition) {
+                // return error
+            } else {
+                app = telecom_acknowledge;
+            }
             break;
-
         default: // Unrecognized command
+            // return error
             break;
     }
 }
@@ -220,6 +253,14 @@ void USCIB0_ISR(void)
         case USCI_I2C_UCSTTIFG:     // START condition detected with own address (slave mode only)
             break;
         case USCI_I2C_UCSTPIFG:     // STOP condition detected (master & slave mode)
+
+            // Receive the final byte and process the command
+            commandBuffer[bytesReceived++] = EUSCI_B_I2C_slaveGetData(EUSCI_B0_BASE);
+            receivingData = 0;      // End transmission of data
+            suspendI2CInterrupts(); // Suspend interrupts and exit LPM during command handling
+            commandHandler();
+            __bic_SR_register_on_exit(CPUOFF); // Exit LPM to resume in correct mode
+
             break;
         case USCI_I2C_UCRXIFG3:     // RXIFG3
             break;
@@ -234,14 +275,23 @@ void USCIB0_ISR(void)
         case USCI_I2C_UCTXIFG1:     // TXIFG1
             break;
         case USCI_I2C_UCRXIFG0:     // RXIFG0
-            // Read command from master
-            commandID = EUSCI_B_I2C_slaveGetData(EUSCI_B0_BASE);
-            // Pass to command handler
-            suspendI2CInterrupts(); // Suspend interrupts and exit LPM during command handling
-            __bic_SR_register_on_exit(CPUOFF); // Exit LPM
-            commandHandler();
+
+            // Receive a byte from master
+            if (!receivingData) {
+                bytesReceived = 0;  // Reset the counter at the start of transmission
+                receivingData = 1;
+            }
+
+            commandBuffer[bytesReceived++] = EUSCI_B_I2C_slaveGetData(EUSCI_B0_BASE);
+
             break;
         case USCI_I2C_UCTXIFG0:     // TXIFG0
+
+            // Send a byte to master
+            EUSCI_B_I2C_slavePutData(EUSCI_B0_BASE, *responsePointer);
+            responsePointer++;  // Increment pointer in response buffer
+
+
             break;
         case USCI_I2C_UCBCNTIFG:    // Byte count limit reached (UCBxTBCNT)
             break;
@@ -255,6 +305,9 @@ void USCIB0_ISR(void)
 }
 
 
+// LEDs used below to verify state of board
+
+
 void run(){
 
     switch(app){
@@ -264,40 +317,45 @@ void run(){
             break;
         /* Idle state */
         case idle:
-            resumeI2CInterrupts(); // Resume interrupts after executing command
+            responsePointer = responseBuffer;  // Reset the response buffer pointer
+            resumeI2CInterrupts(); // Resume interrupts and enter LPM after executing command
             break;
         /* Single-use function to power on main board before changing to idle mode */
         case power_cdh:
             break;
         /* Modes used for each command */
         case system_status:
-            // do something
             GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);  // Green LED on
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
+            // Do action
+            // Fill responseBuffer
             app = idle;
             break;
         case health_check:
-            // do something
             GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);  // Red LED on
             GPIO_setOutputHighOnPin(GPIO_PORT_P4, GPIO_PIN6);
+            // Do action
+            // Fill responseBuffer
             app = idle;
             break;
         case temp_reading:
-            // do something
             GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);  // Red and Green LEDs on
             GPIO_setOutputHighOnPin(GPIO_PORT_P4, GPIO_PIN6);
             GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN0);
+            // Do action
+            // Fill responseBuffer
             app = idle;
             break;
         case telecom_acknowledge:
-            // do something
             GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN6);  // Flash both LEDs
             GPIO_toggleOutputOnPin(GPIO_PORT_P4, GPIO_PIN6);
             GPIO_toggleOutputOnPin(GPIO_PORT_P4, GPIO_PIN6);
             GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
             GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
             GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
+            // Do action
+            // Fill responseBuffer
             app = idle;
             break;
     }
